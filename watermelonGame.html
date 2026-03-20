@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合成大高宁</title>
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #f9f7f2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        
+        /* 游戏容器 */
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 350px;
+            height: 500px;
+            background-color: #e6f7ff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border: 3px solid #fff;
+        }
+        
+        /* 游戏标题 */
+        h1 {
+            color: #ff6b81;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 3rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(45deg, #ff6b81, #ff8e53);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            padding: 10px 0;
+        }
+        
+        /* 分数显示 */
+        .score {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            background-color: #fff9c4;
+            padding: 12px 24px;
+            border-radius: 25px;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 2px solid #ffecb3;
+        }
+        
+        /* 游戏区域 */
+        .game-area {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 水果样式 */
+        .fruit {
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            border: 2px solid white;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        /* 水果预览 */
+        .fruit-preview {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 50%;
+            z-index: 99;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            border: 2px solid white;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 20px;
+            }
+            
+            .game-container {
+                height: 700px;
+                max-width: 90vw;
+            }
+            
+            .score {
+                font-size: 20px;
+                padding: 10px 20px;
+            }
+            
+            .game-over {
+                padding: 40px;
+            }
+            
+            .game-over h2 {
+                font-size: 2rem;
+            }
+            
+            .final-score {
+                font-size: 24px;
+            }
+            
+            .restart-btn {
+                padding: 12px 24px;
+                font-size: 16px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 15px;
+            }
+            
+            .game-container {
+                height: 600px;
+            }
+            
+            .score {
+                font-size: 18px;
+                padding: 8px 16px;
+            }
+            
+            .game-over {
+                padding: 30px;
+            }
+        }
+        
+        /* 游戏结束弹窗 */
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 200;
+            display: none;
+            border: 3px solid #ffecb3;
+        }
+        
+        .game-over h2 {
+            margin-bottom: 20px;
+            color: #ff6b81;
+            font-size: 2.5rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .final-score {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #333;
+            background: linear-gradient(45deg, #ff6b81, #ff8e53);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .restart-btn {
+            padding: 15px 30px;
+            font-size: 18px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+            font-weight: bold;
+        }
+        
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+        }
+        
+        /* 水果图片 */
+        .fruit-0 { background-image: url('img1.png.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat; } /* 等级1 */
+        .fruit-1 { background-image: url('img2.png.png'); background-size: cover; background-position: center; background-repeat: no-repeat; } /* 等级2 */
+        .fruit-2 { background-image: url('img3.png.png'); background-size: cover; background-position: center; background-repeat: no-repeat; } /* 等级3 */
+        .fruit-3 { background-image: url('img4.png.png'); background-size: cover; background-position: center; background-repeat: no-repeat; } /* 等级4 */
+        .fruit-4 { background-image: url('img5.png.png'); background-size: cover; background-position: center; background-repeat: no-repeat; } /* 等级5 */
+        .fruit-5 { background-image: url('img6.png.png'); background-size: cover; background-position: center; background-repeat: no-repeat; } /* 等级6 */
+        .fruit-6 { background-image: url('img7.png.png'); background-size: cover; background-position: center; background-repeat: no-repeat; } /* 等级7 */
+        .fruit-7 { background-image: url('img8.png.png'); background-size: cover; background-position: center; background-repeat: no-repeat; } /* 等级8 */
+        .fruit-8 { background-image: url('img9.png.png'); background-size: cover; background-position: center; background-repeat: no-repeat; } /* 等级9 */
+    </style>
+</head>
+<body>
+    <h1>合成大高宁</h1>
+    
+    <div class="game-container">
+        <!-- 分数显示 -->
+        <div class="score">分数: <span id="score">0</span></div>
+        
+        <!-- 游戏区域 -->
+        <div class="game-area" id="gameArea"></div>
+        
+        <!-- 游戏结束弹窗 -->
+        <div class="game-over" id="gameOver">
+            <h2>游戏结束</h2>
+            <div class="final-score">你的得分: <span id="finalScore">0</span></div>
+            <button class="restart-btn" onclick="restartGame()">重新开始</button>
+        </div>
+    </div>
+    
+    <script>
+        // 游戏变量
+        let fruits = [];
+        let score = 0;
+        let gameInterval;
+        let fruitPreview;
+        let nextFruitType;
+        let isGameOver = false;
+        
+        // 游戏常量
+        const GAME_WIDTH = 350;
+        const GAME_HEIGHT = 500;
+        const FRUIT_SIZES = [30, 40, 50, 60, 70, 80, 90, 100, 120]; // 不同水果的大小
+        const GRAVITY = 0.5; // 重力
+        const BOUNCE = 0.2; // 正常的弹跳系数
+        const FRUIT_TYPES = 9; // 水果种类数量
+        const SAFETY_MARGIN = 8; // 小球之间的物理间距
+        const MAX_SPEED = 5; // 正常的最大速度
+        
+        // 初始化游戏
+        function initGame() {
+            // 重置游戏状态
+            score = 0;
+            fruits = [];
+            isGameOver = false;
+            
+            // 更新分数显示
+            document.getElementById('score').textContent = score;
+            
+            // 隐藏游戏结束弹窗
+            document.getElementById('gameOver').style.display = 'none';
+            
+            // 清除现有水果
+            const existingFruits = document.querySelectorAll('.fruit');
+            existingFruits.forEach(fruit => fruit.remove());
+            
+            // 清除水果预览
+            if (fruitPreview) {
+                fruitPreview.remove();
+            }
+            
+            // 生成下一个水果
+            generateNextFruit();
+            
+            // 开始游戏循环
+            if (gameInterval) clearInterval(gameInterval);
+            gameInterval = setInterval(gameLoop, 30);
+            
+            // 添加鼠标事件
+            const gameArea = document.getElementById('gameArea');
+            gameArea.addEventListener('click', handleClick);
+            gameArea.addEventListener('mousemove', handleMouseMove);
+        }
+        
+        // 生成下一个水果
+        function generateNextFruit() {
+            nextFruitType = Math.floor(Math.random() * (FRUIT_TYPES - 1)); // 不生成西瓜
+            
+            // 创建水果预览
+            if (fruitPreview) {
+                fruitPreview.remove();
+            }
+            
+            fruitPreview = document.createElement('div');
+            fruitPreview.className = `fruit-preview fruit-${nextFruitType}`;
+            const size = FRUIT_SIZES[nextFruitType];
+            fruitPreview.style.width = size + 'px';
+            fruitPreview.style.height = size + 'px';
+            fruitPreview.style.left = '50%';
+            fruitPreview.style.transform = 'translateX(-50%)';
+            
+            document.querySelector('.game-container').appendChild(fruitPreview);
+        }
+        
+        // 处理鼠标移动
+        function handleMouseMove(e) {
+            if (!fruitPreview || isGameOver) return;
+            
+            const gameArea = document.getElementById('gameArea');
+            const rect = gameArea.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            
+            // 限制在游戏区域内
+            const size = FRUIT_SIZES[nextFruitType];
+            const minX = size / 2;
+            const maxX = GAME_WIDTH - size / 2;
+            const clampedX = Math.max(minX, Math.min(maxX, x));
+            
+            fruitPreview.style.left = clampedX + 'px';
+            fruitPreview.style.transform = 'translateX(-50%)';
+        }
+        
+        // 处理点击事件
+        function handleClick(e) {
+            if (isGameOver) return;
+            
+            const gameArea = document.getElementById('gameArea');
+            const rect = gameArea.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            
+            // 限制在游戏区域内
+            const size = FRUIT_SIZES[nextFruitType];
+            const minX = size / 2;
+            const maxX = GAME_WIDTH - size / 2;
+            const clampedX = Math.max(minX, Math.min(maxX, x));
+            
+            // 创建新水果
+            createFruit(clampedX, 50, nextFruitType);
+            
+            // 生成下一个水果
+            generateNextFruit();
+        }
+        
+        // 创建水果
+        function createFruit(x, y, type) {
+            const fruit = document.createElement('div');
+            fruit.className = `fruit fruit-${type}`;
+            const size = FRUIT_SIZES[type];
+            fruit.style.width = size + 'px';
+            fruit.style.height = size + 'px';
+            fruit.style.left = (x - size / 2) + 'px';
+            fruit.style.top = (y - size / 2) + 'px';
+            
+            document.getElementById('gameArea').appendChild(fruit);
+            
+            // 添加到水果数组
+            fruits.push({
+                element: fruit,
+                x: x,
+                y: y,
+                size: size,
+                type: type,
+                vx: 0,
+                vy: 0
+            });
+        }
+        
+        // 游戏主循环
+        function gameLoop() {
+            if (isGameOver) return;
+            
+            // 先检测碰撞，确保同色球一碰立即合成，无卡顿无延迟
+            detectCollisions();
+            
+            // 更新水果位置
+            for (let i = 0; i < fruits.length; i++) {
+                const fruit = fruits[i];
+                
+                // 应用重力
+                fruit.vy += GRAVITY;
+                
+                // 连续碰撞检测，防止高速小球穿透
+                checkContinuousCollision(fruit);
+                
+                // 更新位置
+                fruit.x += fruit.vx;
+                fruit.y += fruit.vy;
+                
+                // 边界碰撞检测
+                // 左右边界
+                const halfSize = fruit.size / 2;
+                if (fruit.x - halfSize < 0) {
+                    fruit.x = halfSize;
+                    fruit.vx *= -BOUNCE;
+                } else if (fruit.x + halfSize > GAME_WIDTH) {
+                    fruit.x = GAME_WIDTH - halfSize;
+                    fruit.vx *= -BOUNCE;
+                }
+                
+                // 底部边界 - 确保小球不会穿透地面
+                if (fruit.y + halfSize > GAME_HEIGHT) {
+                    fruit.y = GAME_HEIGHT - halfSize;
+                    fruit.vy *= -BOUNCE;
+                    // 减小水平速度
+                    fruit.vx *= 0.8;
+                }
+                
+                // 更新DOM位置
+                fruit.element.style.left = (fruit.x - halfSize) + 'px';
+                fruit.element.style.top = (fruit.y - halfSize) + 'px';
+            }
+            
+            // 再次检测碰撞，确保快速移动的小球也能及时合成
+            detectCollisions();
+            
+            // 检查游戏是否结束
+            checkGameOver();
+        }
+        
+        // 检测水果碰撞
+        function detectCollisions() {
+            // 先处理合成，确保同等级球一碰就立即合成
+            for (let i = 0; i < fruits.length; i++) {
+                for (let j = i + 1; j < fruits.length; j++) {
+                    const fruit1 = fruits[i];
+                    const fruit2 = fruits[j];
+                    
+                    // 计算距离
+                    const dx = fruit1.x - fruit2.x;
+                    const dy = fruit1.y - fruit2.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const minDistance = (fruit1.size + fruit2.size) / 2;
+                    
+                    // 检测碰撞
+                    if (distance < minDistance) {
+                        // 只有type完全相同的水果才会合成
+                        if (fruit1.type === fruit2.type) {
+                            // 一接触就立即合成，没有任何延迟和阻碍
+                            combineFruits(i, j);
+                            return; // 合成后立即返回，确保无延迟
+                        }
+                    }
+                }
+            }
+            
+            // 增加碰撞检测迭代次数，确保小球有正确物理边界
+            const iterations = 3;
+            for (let iter = 0; iter < iterations; iter++) {
+                // 处理物理碰撞，按大小排序，先处理大球
+                const sortedFruits = [...fruits].sort((a, b) => b.size - a.size);
+                for (let i = 0; i < sortedFruits.length; i++) {
+                    for (let j = i + 1; j < sortedFruits.length; j++) {
+                        const fruit1 = sortedFruits[i];
+                        const fruit2 = sortedFruits[j];
+                        
+                        // 跳过同类型水果的物理碰撞，只处理不同类型的
+                        if (fruit1.type === fruit2.type) continue;
+                        
+                        // 计算距离
+                        const dx = fruit1.x - fruit2.x;
+                        const dy = fruit1.y - fruit2.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        const minDistance = (fruit1.size + fruit2.size) / 2 + SAFETY_MARGIN;
+                        
+                        // 检测碰撞
+                        if (distance < minDistance) {
+                            // 不同type的水果只做物理碰撞
+                            resolveCollision(fruit1, fruit2);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 解决碰撞
+        function resolveCollision(fruit1, fruit2) {
+            // 计算碰撞法线
+            const dx = fruit2.x - fruit1.x;
+            const dy = fruit2.y - fruit1.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // 增加安全边距，防止小球互相嵌入
+            const minDistance = (fruit1.size + fruit2.size) / 2 + SAFETY_MARGIN;
+            const overlap = minDistance - distance;
+            
+            // 只有当有重叠时才进行分离
+            if (overlap > 0) {
+                // 适当的分离强度，使分离过程流畅
+                const separationFactor = 0.2;
+                const separationX = (dx / distance) * overlap * separationFactor;
+                const separationY = (dy / distance) * overlap * separationFactor;
+                
+                // 提高物理质量（质量与大小成正比）
+                const mass1 = fruit1.size;
+                const mass2 = fruit2.size;
+                const totalMass = mass1 + mass2;
+                
+                const move1 = mass2 / totalMass;
+                const move2 = mass1 / totalMass;
+                
+                fruit1.x -= separationX * move1;
+                fruit1.y -= separationY * move1;
+                fruit2.x += separationX * move2;
+                fruit2.y += separationY * move2;
+                
+                // 计算碰撞后的速度
+                const nx = dx / distance;
+                const ny = dy / distance;
+                
+                // 计算相对速度
+                const relativeVelocityX = fruit2.vx - fruit1.vx;
+                const relativeVelocityY = fruit2.vy - fruit1.vy;
+                const relativeVelocity = Math.sqrt(relativeVelocityX * relativeVelocityX + relativeVelocityY * relativeVelocityY);
+                
+                // 正常的碰撞冲量，使碰撞流畅自然
+                const collisionImpulse = 0.1;
+                
+                // 计算碰撞后的速度变化
+                const impulse = collisionImpulse * relativeVelocity;
+                
+                // 基于质量的速度变化
+                fruit1.vx += impulse * nx * move1;
+                fruit1.vy += impulse * ny * move1;
+                fruit2.vx -= impulse * nx * move2;
+                fruit2.vy -= impulse * ny * move2;
+                
+                // 限制最大速度，防止高速撞击导致问题
+                fruit1.vx = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, fruit1.vx));
+                fruit1.vy = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, fruit1.vy));
+                fruit2.vx = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, fruit2.vx));
+                fruit2.vy = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, fruit2.vy));
+                
+                // 移除速度阻尼，保持碰撞流畅
+            }
+        }
+        
+        // 连续碰撞检测 (CCD)，防止高速小球穿透
+        function checkContinuousCollision(fruit) {
+            // 增加预测步数，提高检测精度
+            const steps = 3;
+            const stepX = fruit.vx / steps;
+            const stepY = fruit.vy / steps;
+            
+            for (let step = 1; step <= steps; step++) {
+                // 预测当前步的位置
+                const nextX = fruit.x + stepX * step;
+                const nextY = fruit.y + stepY * step;
+                
+                // 检查与其他水果的碰撞
+                for (let otherFruit of fruits) {
+                    if (otherFruit === fruit) continue;
+                    
+                    const dx = nextX - otherFruit.x;
+                    const dy = nextY - otherFruit.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    // 增加安全边距
+                    const minDistance = (fruit.size + otherFruit.size) / 2 + SAFETY_MARGIN;
+                    
+                    // 如果预测位置会发生碰撞，提前调整速度
+                    if (distance < minDistance) {
+                        // 计算碰撞法线
+                        const nx = dx / distance;
+                        const ny = dy / distance;
+                        
+                        // 计算相对速度
+                        const relativeVelocityX = fruit.vx - otherFruit.vx;
+                        const relativeVelocityY = fruit.vy - otherFruit.vy;
+                        
+                        // 计算速度在碰撞法线方向的分量
+                        const velocityAlongNormal = relativeVelocityX * nx + relativeVelocityY * ny;
+                        
+                        // 如果速度方向是靠近对方，则调整速度
+                        if (velocityAlongNormal < 0) {
+                            // 反弹速度
+                            const bounceFactor = 0.3;
+                            fruit.vx -= 2 * velocityAlongNormal * nx * bounceFactor;
+                            fruit.vy -= 2 * velocityAlongNormal * ny * bounceFactor;
+                            
+                            // 限制速度
+                            fruit.vx = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, fruit.vx));
+                            fruit.vy = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, fruit.vy));
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 合成水果
+        function combineFruits(index1, index2) {
+            const fruit1 = fruits[index1];
+            const fruit2 = fruits[index2];
+            
+            // 计算合成位置
+            const newX = (fruit1.x + fruit2.x) / 2;
+            const newY = (fruit1.y + fruit2.y) / 2;
+            const newType = fruit1.type + 1;
+            
+            // 检查是否达到最高等级
+            if (newType < FRUIT_TYPES) {
+                // 增加分数
+                score += (newType + 1) * 10;
+                document.getElementById('score').textContent = score;
+                
+                // 移除旧水果
+                fruit1.element.remove();
+                fruit2.element.remove();
+                fruits.splice(Math.max(index1, index2), 1);
+                fruits.splice(Math.min(index1, index2), 1);
+                
+                // 创建新水果
+                createFruit(newX, newY, newType);
+            }
+        }
+        
+        // 检查游戏是否结束
+        function checkGameOver() {
+            // 检查是否有水果超过顶部
+            for (let fruit of fruits) {
+                // 只有当水果的顶部（y坐标 - 半径） ≤ 0 时才判定游戏结束
+                if (fruit.y - fruit.size / 2 <= 0) {
+                    gameOver();
+                    break;
+                }
+            }
+        }
+        
+        // 游戏结束
+        function gameOver() {
+            isGameOver = true;
+            clearInterval(gameInterval);
+            
+            // 显示游戏结束弹窗
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+        
+        // 重新开始游戏
+        function restartGame() {
+            initGame();
+        }
+        
+        // 初始化游戏
+        window.onload = initGame;
+    </script>
+</body>
+</html>
